@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wp
+  labels:
+    id: c0911147
+    app: wordpress
+    env: dev
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wp-secret
+  namespace: wp
+  labels:
+    id: c0911147
+    app: wordpress
+    env: dev
+type: Opaque
+data:
+  wp-password: cGFzc3dvcmQ=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: wp
+  labels:
+    id: c0911147
+    app: wordpress
+    env: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      id: c0911147
+  template:
+    metadata:
+      labels:
+        id: c0911147
+        app: wordpress
+        env: dev
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress:php7.4-apache
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: mariadb.db.svc.cluster.local
+        - name: WORDPRESS_DB_USER
+          value: wpuser
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wp-secret
+              key: wp-password
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: wp
+  labels:
+    id: c0911147
+    app: wordpress
+    env: dev
+spec:
+  selector:
+    id: c0911147
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
